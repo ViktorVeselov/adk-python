@@ -354,8 +354,11 @@ class BaseLlmFlow(ABC):
           and llm_response.content.role == 'user'
       ):
         return 'user'
-      else:
-        return invocation_context.agent.name
+      # Voice input has content=None, so check input_transcription separately.
+      # TODO: Unify user input detection in LlmResponse (Issue #4260).
+      if llm_response and llm_response.input_transcription:
+        return 'user'
+      return invocation_context.agent.name
 
     try:
       while True:
