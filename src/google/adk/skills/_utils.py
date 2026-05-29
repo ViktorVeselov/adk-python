@@ -37,6 +37,8 @@ _ALLOWED_FRONTMATTER_KEYS = frozenset({
     "allowed_tools",
     "metadata",
     "compatibility",
+    "taxonomy-binds",
+    "taxonomy_binds",
 })
 
 

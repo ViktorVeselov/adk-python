@@ -21,5 +21,27 @@ from .events.event import Event
 from .runners import Runner
 from .workflow import Workflow
 
+# Taxonomy Policy & Security Engine
+from .plugins.taxonomy.policy import DefaultSkillPolicy
+from .plugins.taxonomy.policy import SkillPolicy
+from .plugins.taxonomy.policy import TaxonomyPipeline
+from .plugins.taxonomy.policy import TaxonomyResolver
+from .plugins.taxonomy.taxonomy_config import TaxonomyRegistry
+from .plugins.taxonomy.taxonomy_config import TaxonomyTerm
+from .plugins.taxonomy.taxonomy_plugin import TaxonomyPlugin
+
 __version__ = version.__version__
-__all__ = ["Agent", "Context", "Event", "Runner", "Workflow"]
+__all__ = [
+    "Agent",
+    "Context",
+    "DefaultSkillPolicy",
+    "Event",
+    "Runner",
+    "SkillPolicy",
+    "TaxonomyPipeline",
+    "TaxonomyPlugin",
+    "TaxonomyRegistry",
+    "TaxonomyResolver",
+    "TaxonomyTerm",
+    "Workflow",
+]

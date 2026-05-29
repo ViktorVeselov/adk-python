@@ -34,6 +34,8 @@ _SNAKE_OR_KEBAB_NAME_PATTERN = re.compile(
     r"^([a-z0-9]+(-[a-z0-9]+)*|[a-z0-9]+(_[a-z0-9]+)*)$"
 )
 
+_TAXONOMY_BIND_PATTERN = re.compile(r"^[a-zA-Z0-9:\-_/.]+$")
+
 
 class Frontmatter(BaseModel):
   """L1 skill content: metadata parsed from SKILL.md for skill discovery.
@@ -51,6 +53,10 @@ class Frontmatter(BaseModel):
       metadata: Key-value pairs for client-specific properties (defaults to
         empty dict). For example, to include additional tools, use the
         ``adk_additional_tools`` key with a list of tools.
+      taxonomy_binds: List of taxonomy domain URIs this skill is bound to.
+        When a TaxonomyPlugin is configured, only skills whose binds overlap
+        with the active taxonomy domains will be visible and executable.
+        Accepts the YAML-friendly ``taxonomy-binds`` key.
   """
 
   model_config = ConfigDict(
@@ -68,6 +74,11 @@ class Frontmatter(BaseModel):
       serialization_alias="allowed-tools",
   )
   metadata: dict[str, Any] = {}
+  taxonomy_binds: list[str] = Field(
+      default_factory=list,
+      alias="taxonomy-binds",
+      serialization_alias="taxonomy-binds",
+  )
 
   @field_validator("metadata")
   @classmethod
@@ -115,6 +126,22 @@ class Frontmatter(BaseModel):
           f" {description_len}"
       )
     return v
+
+  @field_validator("taxonomy_binds")
+  @classmethod
+  def _validate_taxonomy_binds(cls, v: list[str]) -> list[str]:
+    """Validates and sanitizes taxonomy bind tags."""
+    sanitized = []
+    for item in v:
+      if not isinstance(item, str):
+        raise ValueError("Taxonomy tags must be strings")
+      normalized = unicodedata.normalize("NFKC", item).strip()
+      if not _TAXONOMY_BIND_PATTERN.match(normalized):
+        raise ValueError(
+            f"Invalid characters in taxonomy bind tag: {normalized}"
+        )
+      sanitized.append(normalized)
+    return sanitized
 
   @field_validator("compatibility")
   @classmethod
