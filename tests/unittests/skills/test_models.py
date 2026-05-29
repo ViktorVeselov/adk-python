@@ -232,3 +232,49 @@ def test_metadata_adk_additional_tools_invalid_type():
         "description": "desc",
         "metadata": {"adk_additional_tools": 123},
     })
+
+
+# --- taxonomy-binds validation tests ---
+
+
+def test_taxonomy_binds_valid():
+  fm = models.Frontmatter.model_validate({
+      "name": "my-skill",
+      "description": "desc",
+      "taxonomy-binds": ["engineering", "machine-learning", "domain:sub/tag.1_2"],
+  })
+  assert fm.taxonomy_binds == [
+      "engineering",
+      "machine-learning",
+      "domain:sub/tag.1_2",
+  ]
+
+
+def test_taxonomy_binds_invalid_spaces():
+  with pytest.raises(ValidationError, match="Invalid characters in taxonomy bind tag"):
+    models.Frontmatter.model_validate({
+        "name": "my-skill",
+        "description": "desc",
+        "taxonomy-binds": ["engineering invalid"],
+    })
+
+
+def test_taxonomy_binds_invalid_type():
+  with pytest.raises(ValidationError, match="Input should be a valid string"):
+    models.Frontmatter.model_validate({
+        "name": "my-skill",
+        "description": "desc",
+        "taxonomy-binds": [123],
+    })
+
+
+def test_taxonomy_binds_serialization_alias():
+  fm = models.Frontmatter(
+      name="my-skill",
+      description="desc",
+      taxonomy_binds=["engineering", "machine-learning"],
+  )
+  dumped = fm.model_dump(by_alias=True)
+  assert "taxonomy-binds" in dumped
+  assert dumped["taxonomy-binds"] == ["engineering", "machine-learning"]
+

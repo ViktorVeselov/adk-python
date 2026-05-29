@@ -86,6 +86,26 @@ Instructions here
   assert skill.frontmatter.allowed_tools == "some-tool-*"
 
 
+def test_taxonomy_binds_yaml_key(tmp_path):
+  """Tests that taxonomy-binds YAML key loads correctly."""
+  skill_dir = tmp_path / "my-skill"
+  skill_dir.mkdir()
+
+  skill_md = """---
+name: my-skill
+description: A skill
+taxonomy-binds:
+  - "engineering"
+  - "machine-learning"
+---
+Instructions here
+"""
+  (skill_dir / "SKILL.md").write_text(skill_md)
+
+  skill = _load_skill_from_dir(skill_dir)
+  assert skill.frontmatter.taxonomy_binds == ["engineering", "machine-learning"]
+
+
 def test_name_directory_mismatch(tmp_path):
   """Tests that name-directory mismatch raises ValueError."""
   skill_dir = tmp_path / "wrong-dir"

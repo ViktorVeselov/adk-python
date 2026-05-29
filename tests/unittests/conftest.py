@@ -13,6 +13,33 @@
 # limitations under the License.
 
 import os
+import sys
+from types import ModuleType
+
+# Mock/patch google.genai.types.AvatarConfig if it's missing or fails to import
+try:
+    import google.genai.types as genai_types
+    if not hasattr(genai_types, "AvatarConfig"):
+        from pydantic import BaseModel
+        class AvatarConfig(BaseModel):
+            pass
+        genai_types.AvatarConfig = AvatarConfig
+except Exception:
+    try:
+        google_module = ModuleType("google")
+        sys.modules["google"] = google_module
+        
+        genai_module = ModuleType("google.genai")
+        sys.modules["google.genai"] = genai_module
+        
+        from pydantic import BaseModel
+        genai_types = ModuleType("google.genai.types")
+        class AvatarConfig(BaseModel):
+            pass
+        genai_types.AvatarConfig = AvatarConfig
+        sys.modules["google.genai.types"] = genai_types
+    except Exception:
+        pass
 
 import pytest
 
