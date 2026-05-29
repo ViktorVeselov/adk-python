@@ -99,10 +99,7 @@ class TaxonomyPlugin(BasePlugin):
     self.resolver = resolver
     self.policy = policy
 
-  # ──────────────────────────────────────────────────────────────────
-  # 1. Taxonomy Resolution (before each LLM call)
-  # ──────────────────────────────────────────────────────────────────
-
+  # Taxonomy Resolution before each LLM call
   async def before_model_callback(
       self, *, callback_context: CallbackContext, llm_request: LlmRequest
   ) -> Optional[LlmResponse]:
@@ -124,9 +121,7 @@ class TaxonomyPlugin(BasePlugin):
     )
     return None
 
-  # ──────────────────────────────────────────────────────────────────
-  # 2. Skill Discovery & Execution Gating (before tool runs)
-  # ──────────────────────────────────────────────────────────────────
+  # Skill Discovery & Execution Gating before tool runs
 
   async def before_tool_callback(
       self,
@@ -153,16 +148,16 @@ class TaxonomyPlugin(BasePlugin):
         tool_context.state.get(_ACTIVE_TAXONOMIES_STATE_KEY) or []
     )
 
-    # ── list_skills: filter the returned skill list ──────────────
+    # list_skills: filter the returned skill list
     if tool.name == "list_skills":
       return self._filter_list_skills(tool, tool_context, active_taxonomies)
 
-    # ── load/resource/script: validate and gate ──────────────────
+    # load/resource/script: validate and gate
     skill_name = tool_args.get("skill_name")
     if not skill_name:
       return None
 
-    # 1. REUSE SDK PATH VALIDATION — prevents traversal, null-byte, slash escapes
+    # REUSE SDK PATH VALIDATION - prevents traversal, null-byte, slash escapes
     try:
       _validate_path_segment(skill_name, "skill_name")
     except InputValidationError as e:
@@ -171,7 +166,7 @@ class TaxonomyPlugin(BasePlugin):
           "error_code": "INVALID_ARGUMENTS",
       }
 
-    # 2. DIRECTORY TRAVERSAL GUARD on file_path
+    # DIRECTORY TRAVERSAL GUARD on file_path
     file_path = tool_args.get("file_path")
     if file_path:
       if ".." in file_path or file_path.startswith(("/", "\\")):
@@ -180,7 +175,7 @@ class TaxonomyPlugin(BasePlugin):
             "error_code": "INVALID_ARGUMENTS",
         }
 
-    # 3. SKILL POLICY CHECK
+    # SKILL POLICY CHECK
     if self.policy and self.resolver:
       toolset = getattr(tool, "_toolset", None)
       if toolset:
@@ -245,10 +240,7 @@ class TaxonomyPlugin(BasePlugin):
     )
     return {"result": prompt.format_skills_as_xml(allowed_skills)}
 
-  # ──────────────────────────────────────────────────────────────────
-  # 3. Instruction Shaping (after load_skill runs)
-  # ──────────────────────────────────────────────────────────────────
-
+  # Instruction Shaping after load_skill
   async def after_tool_callback(
       self,
       *,
